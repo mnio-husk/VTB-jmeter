@@ -15,6 +15,7 @@ jobs:
     - name: Setup Java 17
       uses: actions/setup-java@v4
       with:
+        distribution: 'temurin'
         java-version: '17'
         
     - name: Install JMeter
@@ -26,9 +27,16 @@ jobs:
     - name: Copy libs + JMX
       run: |
         mkdir -p jmeter/lib/ext
-        # Копируем ВСЕ .jar из lib/ в JMeter
-        cp lib/*.jar jmeter/lib/ext/
+        cp lib/*.jar jmeter/lib/ext/ || echo "No lib folder"
         
     - name: Run JMX
       run: |
         ./jmeter/bin/jmeter -n -t Jmeter-scenario-vtb.jmx
+          
+    - name: Upload results
+      uses: actions/upload-artifact@v4
+      with:
+        name: jmeter-results
+        path: |
+          results.jtl
+          dashboard/**
