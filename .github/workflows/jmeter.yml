@@ -27,16 +27,9 @@ jobs:
     - name: Copy libs + JMX
       run: |
         mkdir -p jmeter/lib/ext
+        wget -P jmeter/lib/ext/ https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.6.0/kafka-clients-3.6.0.jar
         cp lib/*.jar jmeter/lib/ext/ || echo "No lib folder"
         
     - name: Run JMX
       run: |
         ./jmeter/bin/jmeter -n -t Jmeter-scenario-vtb.jmx
-          
-    - name: Upload results
-      uses: actions/upload-artifact@v4
-      with:
-        name: jmeter-results
-        path: |
-          results.jtl
-          dashboard/**
