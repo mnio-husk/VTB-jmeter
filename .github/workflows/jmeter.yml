@@ -1,9 +1,5 @@
 name: JMeter load kafka vtb
-
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+on: [push, workflow_dispatch]
 
 jobs:
   test:
@@ -18,18 +14,27 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
         
+   
+    - name: Cache JMeter
+      uses: actions/cache@v4
+      id: jmeter-cache
+      with:
+        path: jmeter
+        key: jmeter-5.6.3-${{ hashFiles('Jmeter-scenario-vtb.jmx') }}
+        
     - name: Install JMeter
+      if: steps.jmeter-cache.outputs.cache-hit != 'true'
       run: |
         wget https://archive.apache.org/dist/jmeter/binaries/apache-jmeter-5.6.3.tgz
         tar -xzf apache-jmeter-5.6.3.tgz
         mv apache-jmeter-5.6.3 jmeter
         
-    - name: Copy libs + JMX
+    - name: Copy Kafka libs
       run: |
         mkdir -p jmeter/lib/ext
-        wget -P jmeter/lib/ext/ https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.6.0/kafka-clients-3.6.0.jar
-        cp lib/*.jar jmeter/lib/ext/ || echo "No lib folder"
+        wget -q https://repo1.maven.org/maven2/org/apache/kafka/kafka-clients/3.6.0/kafka-clients-3.6.0.jar -O jmeter/lib/ext/kafka-clients.jar
+        cp lib/*.jar jmeter/lib/ext/ 2>/dev/null || true
         
     - name: Run JMX
       run: |
-        ./jmeter/bin/jmeter -n -t Jmeter-scenario-vtb.jmx
+        ./jmeter/bin/jmeter -n -t Jmeter-scenario-vtb.jmx 
